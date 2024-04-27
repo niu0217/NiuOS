@@ -118,8 +118,10 @@ void schedule(void)
 				}
 			//如果信号位图中除被阻塞的信号外还有其他信号，并且任务处于可中断状态，则置任务为就绪状态
 			if (((*p)->signal & ~(_BLOCKABLE & (*p)->blocked)) &&
-			(*p)->state==TASK_INTERRUPTIBLE)
-				(*p)->state=TASK_RUNNING;
+			(*p)->state==TASK_INTERRUPTIBLE) {
+				(*p)->state = TASK_RUNNING;
+				fprintk(3, "%ld\t%c\t%ld\t%s\n", (*p)->pid, 'J', jiffies, "schedule");
+			}
 		}
 
 /* this is the scheduler proper: */
@@ -146,6 +148,16 @@ void schedule(void)
 				(*p)->counter = ((*p)->counter >> 1) +
 						(*p)->priority;
 	}
+
+	if(current->pid != task[next]->pid) {
+		// 当前进程时间片到了，从运行态变为就绪态
+		if(current->state == TASK_RUNNING) {
+			fprintk(3, "%ld\t%c\t%ld\t%s\n", current->pid, 'J', jiffies, "schedule");
+		}
+		// next进程从就绪转为运行
+		fprintk(3, "%ld\t%c\t%ld\t%s\n", task[next]->pid, 'R', jiffies, "schedule");
+	}
+
 	//把当前任务指针current指向任务号为next的任务，并切换到该任务中运行；
 	//如果没有任何其他任务可运行时，则运行任务0；
 	switch_to(next);
@@ -156,6 +168,11 @@ void schedule(void)
 int sys_pause(void)
 {
 	current->state = TASK_INTERRUPTIBLE;
+
+	if(current->pid != 0) {
+		fprintk(3, "%ld\t%c\t%ld\t%s\n", current->pid, 'W', jiffies, "sys_pause");
+	}
+
 	schedule();
 	return 0;
 }
@@ -177,9 +194,13 @@ void sleep_on(struct task_struct **p)
 	tmp = *p;
 	*p = current;
 	current->state = TASK_UNINTERRUPTIBLE;
+	fprintk(3, "%ld\t%c\t%ld\t%s\n", current->pid, 'W', jiffies, "sleep_on");
 	schedule();
-	if (tmp)
-		tmp->state=0;
+	if (tmp) {
+		tmp->state = 0;
+		// 原等待队列第一个进程唤醒，从阻塞变为就绪状态
+		fprintk(3, "%ld\t%c\t%ld\t%s\n", tmp->pid, 'J', jiffies, "sleep_on");
+	}
 }
 
 //将当前任务置为可中断的等待状态，并放入*p指定的等待队列中
@@ -197,6 +218,7 @@ void interruptible_sleep_on(struct task_struct **p)
 	tmp=*p;
 	*p=current;
 repeat:	current->state = TASK_INTERRUPTIBLE;
+	fprintk(3, "%ld\t%c\t%ld\t%s\n", current->pid, 'W', jiffies, "interruptible_sleep_on");
 	schedule();
 	//只有当这个等待任务被唤醒时，程序才又会返回这里，表示进程已被明确地唤醒并执行。
 	//如果等待队列中还有等待任务，并且队列头指针所指向的任务不是当前任务时，则将该
@@ -208,8 +230,10 @@ repeat:	current->state = TASK_INTERRUPTIBLE;
 		goto repeat;
 	}
 	*p = NULL;
-	if (tmp)
-		tmp->state=0;
+	if (tmp) {
+		tmp->state = 0;
+		fprintk(3, "%ld\t%c\t%ld\t%s\n", tmp->pid, 'J', jiffies, "interruptible_sleep_on");
+	}
 }
 
 //唤醒*p指向的任务。*p是任务等待队列头指针。由于新等待任务是插入在等待队列头指针处的
@@ -218,6 +242,8 @@ void wake_up(struct task_struct **p)
 {
 	if (p && *p) {
 		(**p).state=0;
+		// 唤醒最后进入等待队列的进程 从阻塞变为就绪
+		fprintk(3, "%ld\t%c\t%ld\t%s\n", (*p)->pid, 'J', jiffies, "wake_up");
 		*p = NULL;
 	}
 }

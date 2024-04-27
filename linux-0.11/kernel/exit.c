@@ -172,6 +172,7 @@ int do_exit(long code)
 		kill_session();
 	// 把当前进程置为僵死状态，表示当前进程已经释放掉了资源。并保存将由符进程读取的退出码
 	current->state = TASK_ZOMBIE;
+	fprintk(3, "%ld\t%c\t%ld\t%s\n", current->pid, 'E', jiffies, "do_exit");
 	current->exit_code = code;
 	// 通知父进程，即向父进程发送信号SIGCHLD---子进程将停止或终止
 	tell_father(current->father);
@@ -266,6 +267,7 @@ repeat:
 		if (options & WNOHANG)
 			return 0;
 		current->state=TASK_INTERRUPTIBLE;
+		fprintk(3, "%ld\t%c\t%ld\t%s\n", current->pid, 'W', jiffies, "sys_waitpid");
 		schedule();
 		if (!(current->signal &= ~(1<<(SIGCHLD-1))))
 			goto repeat;

@@ -122,6 +122,9 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->utime = p->stime = 0;	// 用户态时间和核心态运行时间
 	p->cutime = p->cstime = 0;	// 子进程用户态和核心态运行时间
 	p->start_time = jiffies;	// 进程开始运行时间（当前时间滴答数）
+
+	fprintk(3, "%ld\t%c\t%ld\t%s\n", p->pid, 'N', jiffies, "copy_process");
+
 	// 更改任务状态段TSS数据
 	p->tss.back_link = 0;
 	p->tss.esp0 = PAGE_SIZE + (long) p;
@@ -169,6 +172,9 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	set_tss_desc(gdt+(nr<<1)+FIRST_TSS_ENTRY,&(p->tss));
 	set_ldt_desc(gdt+(nr<<1)+FIRST_LDT_ENTRY,&(p->ldt));
 	p->state = TASK_RUNNING;	/* do this last, just in case */
+
+	fprintk(3, "%ld\t%c\t%ld\t%s\n", p->pid, 'J', jiffies, "copy_process");
+
 	return last_pid;
 }
 
