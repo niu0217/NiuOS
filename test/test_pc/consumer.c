@@ -21,17 +21,19 @@ _syscall2(int, shmget, unsigned int, key, size_t, size);
 #define PRODUCE_NUM 200
 #define BUFFER_SIZE 10
 #define SHM_KEY 2018
- 
-sem_t *Empty,*Full,*Mutex;
- 
+
+sem_t *empty;
+sem_t *full;
+sem_t *mutex;
+
 int main(int argc, char* argv[])
 {
     int used = 0, shm_id,location = 0;
     int *p;
  
-    Empty = sem_open("Empty", BUFFER_SIZE);
-    Full = sem_open("Full", 0);
-    Mutex = sem_open("Mutex", 1);
+    empty = sem_open("EMPTY", BUFFER_SIZE);
+    full = sem_open("FULL", 0);
+    mutex = sem_open("MUTEX", 1);
  
     if((shm_id = shmget(SHM_KEY, BUFFER_SIZE*sizeof(int))) < 0)
         printf("shmget failed!\n");    
@@ -44,14 +46,14 @@ int main(int argc, char* argv[])
  
     while(1)
     {
-        sem_wait(Full);
-        sem_wait(Mutex);
+        sem_wait(full);
+        sem_wait(mutex);
  
         printf("pid %d:\tconsumer consumes item %d\n", getpid(), p[location]);
         fflush(stdout);
  
-        sem_post(Mutex);     
-        sem_post(Empty);
+        sem_post(mutex);     
+        sem_post(empty);
         location  = (location+1) % BUFFER_SIZE;
  
         if(++used == PRODUCE_NUM)
@@ -62,9 +64,9 @@ int main(int argc, char* argv[])
 	fflush(stdout);
  
     /* 释放信号量 */
-    sem_unlink("Mutex");
-    sem_unlink("Full");
-    sem_unlink("Empty");
+    sem_unlink("MUTEX");
+    sem_unlink("FULL");
+    sem_unlink("EMPTY");
  
     return 0;    
 }

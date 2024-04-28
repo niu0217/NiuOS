@@ -1,5 +1,3 @@
-/* producer.c */
- 
 #define __LIBRARY__
 #include <unistd.h>
 #include <linux/sem.h>
@@ -10,30 +8,31 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
  
- 
 _syscall2(sem_t *,sem_open,const char *,name,unsigned int,value)
 _syscall1(int,sem_wait,sem_t *,sem)
 _syscall1(int,sem_post,sem_t *,sem)
 _syscall1(int,sem_unlink,const char *,name)
  
-_syscall1(int, shmat, int, shmid);
-_syscall2(int, shmget, unsigned int, key, size_t, size);
+_syscall1(int, shmat, int, shmid)
+_syscall2(int, shmget, unsigned int, key, size_t, size)
  
 #define PRODUCE_NUM 200 /* 打出数字总数*/
 #define BUFFER_SIZE 10  /* 缓冲区大小 */
 #define SHM_KEY 2018
  
-sem_t *Empty,*Full,*Mutex;
- 
+sem_t *empty;
+sem_t *full;
+sem_t *mutex;
+
 int main(int argc, char* argv[])
 {
     int i, shm_id, location=0;
     int *p;
- 
-    Empty = sem_open("Empty", BUFFER_SIZE);
-    Full = sem_open("Full", 0);
-    Mutex = sem_open("Mutex", 1);
- 
+
+    empty = sem_open("EMPTY", BUFFER_SIZE);
+    full = sem_open("FULL", 0);
+    mutex = sem_open("MUTEX", 1);
+
     if((shm_id = shmget(SHM_KEY, BUFFER_SIZE*sizeof(int))) < 0)
         printf("shmget failed!");    
  
@@ -45,16 +44,16 @@ int main(int argc, char* argv[])
  
     for(i=0; i<PRODUCE_NUM; i++)
     {
-        sem_wait(Empty);
-        sem_wait(Mutex);
- 
+        sem_wait(empty);
+        sem_wait(mutex);
+
         p[location] = i;
  
         printf("pid %d:\tproducer produces item %d\n", getpid(), p[location]);
         fflush(stdout);
- 
-        sem_post(Mutex);
-        sem_post(Full);
+
+        sem_post(mutex);
+        sem_post(full);
         location  = (location+1) % BUFFER_SIZE;
     }
  
@@ -62,9 +61,9 @@ int main(int argc, char* argv[])
 	fflush(stdout);
  
     /* 释放信号量 */
-    sem_unlink("Full");
-    sem_unlink("Empty");
-    sem_unlink("Mutex");
+    sem_unlink("FULL");
+    sem_unlink("EMPTY");
+    sem_unlink("MUTEX");
  
     return 0;    
 }
