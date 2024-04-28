@@ -1,3 +1,6 @@
+#ifndef _SHM_H
+#define _SHM_H
+
 #include <stddef.h>
 
 typedef unsigned int key_t;
@@ -13,3 +16,5 @@ int shmget(key_t key, size_t size);
 void *shmat(int shmid);
 
 #define SHM_NUM 16
+
+#endif

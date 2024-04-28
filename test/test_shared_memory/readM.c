@@ -14,8 +14,8 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
 
-_syscall1(int, shmat, int, shmid);
-_syscall2(int, shmget, unsigned int, key, size_t, size);
+_syscall1(int, shmat, int, shmid)
+_syscall2(int, shmget, unsigned int, key, size_t, size)
 
 #define BUFFER_SIZE 10 /* 缓冲区大小 */
 #define SHM_KEY 2018

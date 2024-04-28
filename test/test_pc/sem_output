@@ -1,0 +1,108 @@
+pid 14:	producer created....
+pid 14:	produces item 0
+pid 14:	produces item 1
+pid 14:	produces item 2
+pid 14:	produces item 3
+pid 14:	produces item 4
+pid 14:	produces item 5
+pid 14:	produces item 6
+pid 14:	produces item 7
+pid 14:	produces item 8
+pid 14:	produces item 9
+pid 19:	consumer 5 created....
+pid 19:	consumer 6 consumes item 0
+pid 19:	consumer 6 consumes item 1
+pid 19:	consumer 6 consumes item 2
+pid 19:	consumer 6 consumes item 3
+pid 19:	consumer 6 consumes item 4
+pid 19:	consumer 6 consumes item 5
+pid 19:	consumer 6 consumes item 6
+pid 19:	consumer 6 consumes item 7
+pid 19:	consumer 6 consumes item 8
+pid 19:	consumer 6 consumes item 9
+pid 18:	consumer 4 created....
+pid 17:	consumer 3 created....
+pid 16:	consumer 2 created....
+pid 15:	consumer 1 created....
+pid 14:	produces item 10
+pid 14:	produces item 11
+pid 14:	produces item 12
+pid 14:	produces item 13
+pid 14:	produces item 14
+pid 14:	produces item 15
+pid 14:	produces item 16
+pid 14:	produces item 17
+pid 14:	produces item 18
+pid 14:	produces item 19
+pid 15:	consumer 2 consumes item 10
+pid 15:	consumer 2 consumes item 11
+pid 15:	consumer 2 consumes item 12
+pid 15:	consumer 2 consumes item 13
+pid 15:	consumer 2 consumes item 14
+pid 15:	consumer 2 consumes item 15
+pid 15:	consumer 2 consumes item 16
+pid 15:	consumer 2 consumes item 17
+pid 15:	consumer 2 consumes item 18
+pid 15:	consumer 2 consumes item 19
+pid 14:	produces item 20
+pid 14:	produces item 21
+pid 14:	produces item 22
+pid 14:	produces item 23
+pid 14:	produces item 24
+pid 14:	produces item 25
+pid 14:	produces item 26
+pid 14:	produces item 27
+pid 14:	produces item 28
+pid 14:	produces item 29
+pid 19:	consumer 6 consumes item 20
+pid 19:	consumer 6 consumes item 21
+pid 19:	consumer 6 consumes item 22
+pid 19:	consumer 6 consumes item 23
+pid 19:	consumer 6 consumes item 24
+pid 19:	consumer 6 consumes item 25
+pid 19:	consumer 6 consumes item 26
+pid 19:	consumer 6 consumes item 27
+pid 19:	consumer 6 consumes item 28
+pid 19:	consumer 6 consumes item 29
+pid 14:	produces item 30
+pid 14:	produces item 31
+pid 14:	produces item 32
+pid 14:	produces item 33
+pid 14:	produces item 34
+pid 14:	produces item 35
+pid 14:	produces item 36
+pid 14:	produces item 37
+pid 14:	produces item 38
+pid 14:	produces item 39
+pid 15:	consumer 2 consumes item 30
+pid 15:	consumer 2 consumes item 31
+pid 15:	consumer 2 consumes item 32
+pid 15:	consumer 2 consumes item 33
+pid 15:	consumer 2 consumes item 34
+pid 15:	consumer 2 consumes item 35
+pid 15:	consumer 2 consumes item 36
+pid 15:	consumer 2 consumes item 37
+pid 15:	consumer 2 consumes item 38
+pid 15:	consumer 2 consumes item 39
+pid 14:	produces item 40
+pid 14:	produces item 41
+pid 14:	produces item 42
+pid 14:	produces item 43
+pid 14:	produces item 44
+pid 14:	produces item 45
+pid 14:	produces item 46
+pid 14:	produces item 47
+pid 14:	produces item 48
+pid 14:	produces item 49
+pid 19:	consumer 6 consumes item 40
+pid 19:	consumer 6 consumes item 41
+pid 19:	consumer 6 consumes item 42
+pid 19:	consumer 6 consumes item 43
+pid 19:	consumer 6 consumes item 44
+pid 19:	consumer 6 consumes item 45
+pid 19:	consumer 6 consumes item 46
+pid 19:	consumer 6 consumes item 47
+pid 19:	consumer 6 consumes item 48
+pid 19:	consumer 6 consumes item 49
+pid 14:	produces item 50
+pid 15:	consumer 2 consumes item 50
