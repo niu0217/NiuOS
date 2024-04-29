@@ -49,6 +49,7 @@ extern void mem_use(void);
 
 extern int timer_interrupt(void);
 extern int system_call(void);
+extern long switch_to(struct task_struct *p, unsigned long address);
 
 // 每个任务（进程）在内核态运行时都有自己的内核态堆栈。这里定义了任务的内核态堆栈结构。
 union task_union {	//定义任务联合（任务结构成员和stack字符数组成员）
@@ -64,6 +65,10 @@ struct task_struct *current = &(init_task.task);	//当前任务指针（初始�
 struct task_struct *last_task_used_math = NULL;		//使用过协处理器任务的指针
 
 struct task_struct * task[NR_TASKS] = {&(init_task.task), };	//定义任务指针数组
+
+// 定义了一个全局变量，和 current 类似，用来指向那一段 0 号进程的 TSS 内存。
+// 所有进程都共用这个 tss，每次切换内核栈，把下一个进程的内核栈的选择子保存到这个 tss 的 esp0 中，其它的内容不变。
+struct tss_struct *tss = &(init_task.task.tss);
 
 long user_stack [ PAGE_SIZE>>2 ] ;	//定义用户堆栈，共1K项，容量4K字节
 
@@ -106,6 +111,7 @@ void schedule(void)
 {
 	int i,next,c;
 	struct task_struct ** p;	//任务结构指针的指针
+	struct tast_struct *pnext = &(init_task.task); // 指向下一个调度的进程PCB
 
 /* check alarm, wake up any interruptible tasks that have got a signal */
 
@@ -138,10 +144,12 @@ void schedule(void)
 			if (!*--p)
 				continue;
 			if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
-				c = (*p)->counter, next = i;
+				c = (*p)->counter, next = i, pnext = *p;
 		}
-		//如果比较得出有counter值不等于0的结果，或者系统中没有一个可运行的任务存在（此时c=-1，next=0）
-		//则退出while循环，否则就根据每个任务的优先权值，更新每一个任务的counter值。
+		// 如果比较得出有counter值不等于0且是TASK_RUNNING状态中的counter最大的进程；
+		// 或者系统中没有一个可运行的任务存在（此时c=-1，next=0 进程0得到调度）
+		// (所以调度算法是不在意进程0的状态是不是TASK_RUNNING，这就意味这进程0可以直接从睡眠切换到运行！)
+		// 则退出while循环，否则就根据每个任务的优先权值，更新每一个任务的counter值。
 		if (c) break;
 		for(p = &LAST_TASK ; p > &FIRST_TASK ; --p)
 			if (*p)
@@ -158,9 +166,8 @@ void schedule(void)
 		fprintk(3, "%ld\t%c\t%ld\t%s\n", task[next]->pid, 'R', jiffies, "schedule");
 	}
 
-	//把当前任务指针current指向任务号为next的任务，并切换到该任务中运行；
-	//如果没有任何其他任务可运行时，则运行任务0；
-	switch_to(next);
+	// 切换到pnext指向的PCB中
+	switch_to(pnext, _LDT(next));
 }
 
 //pause系统调用。转换当前任务的状态为可中断的等待状态，并重新调度
