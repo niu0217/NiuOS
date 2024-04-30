@@ -103,7 +103,7 @@ system_call:
 	jne reschedule
 	cmpl $0,counter(%eax)		# counter
 	je reschedule
-ret_from_sys_call:
+ret_from_sys_call:	# 执行完该函数之后 进程就会从内核态切换到用户态 并且会把内核栈清零
 	movl current,%eax		# task[0] cannot have signals
 	cmpl task,%eax
 	je 3f
@@ -210,7 +210,7 @@ sys_execve:
 	ret
 
 .align 2
-sys_fork:
+sys_fork:	# int 0x80 -> system_call -> sys_call_table -> sys_fork
 	call find_empty_process
 	testl %eax,%eax
 	js 1f
@@ -304,7 +304,7 @@ switch_to:
 	xchgl %eax,current	# eax指向当前进程 current指向下一个进程 ebx也指向下一个进程
 # 重写TSS指针
     movl tss,%ecx	# 这个tss是0号进程的tss 是个全局变量 所有进程共用这个tss
-    addl $4096,%ebx	# 取得下一个进程的内核栈 ebx此时指向的就是下一个进程的内核栈的值
+    addl $4096,%ebx	# 取得下一个进程的内核栈 ebx此时指向的就是下一个进程的内核栈的值（栈基地址=栈顶地址，因为内核栈初始为空）
     movl %ebx,ESP0(%ecx)	# ESP0=4 tss中内核栈指针esp0就放在偏移为4的地方 把下一个进程的内核栈的值放到tss中保存
 # 切换内核栈
     movl %esp,KERNEL_STACK(%eax)	# 将寄存器esp（内核栈使用到当前情况时的栈顶位置）的值保存到当前PCB的kernelstack中

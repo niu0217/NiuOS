@@ -68,6 +68,10 @@ struct task_struct * task[NR_TASKS] = {&(init_task.task), };	//定义任务指�
 
 // 定义了一个全局变量，和 current 类似，用来指向那一段 0 号进程的 TSS 内存。
 // 所有进程都共用这个 tss，每次切换内核栈，把下一个进程的内核栈的选择子保存到这个 tss 的 esp0 中，其它的内容不变。
+// 解释：
+// 		我们只需要一个TSS段，TR寄存器永远指向该TSS段，进程切换不会改变TR寄存器，而是会改变
+// 		该TSS段中的ESP0的内容，将 ESP0 赋值为该进程 task_struct 相同的物理页的页项
+// 		SS0。不用改是因为所有进程的 SS0 都是 0x10，即指向内核数据段。
 struct tss_struct *tss = &(init_task.task.tss);
 
 long user_stack [ PAGE_SIZE>>2 ] ;	//定义用户堆栈，共1K项，容量4K字节

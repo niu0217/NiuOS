@@ -95,6 +95,34 @@ int copy_mem(int nr,struct task_struct * p)
  */
 // 复制进程
 // 参数nr是调用find_empty_process()分配的任务数组项号
+// 执行copy_process前的内核栈的样子
+/*
++----------------------------------------------------------+
+| # push by hardware                                       |
+| SS                                                       |
+| ESP                                                      |
+| EFLAGS                                                   |
+| CS                                                       |
+| EIP                                                      |
++----------------------------------------------------------+
+| # push in `system_call`                                  |
+| DS                                                       |
+| ES                                                       |
+| FS                                                       |
+| EDX                                                      |
+| ECX                                                      |
+| EBX # EDX, ECX and EBX as parameters to `system_call`    |
+| &(pushl %eax) # push by `call sys_call_table(,%eax,4)`   |
++----------------------------------------------------------+
+| # push in `sys_fork`                                     |
+| GS                                                       |
+| ESI                                                      |
+| EDI                                                      |
+| EBP                                                      |
+| EAX # return value of `find_empty_process`                |
+| &(addl $20,%esp) # push by `copy_process`                |
++----------------------------------------------------------+
+*/
 int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 		long ebx,long ecx,long edx,
 		long fs,long es,long ds,
@@ -136,11 +164,18 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 		return -EAGAIN;
 	}
 
-	//初始化内核栈
+	// 初始化内核栈
+	// 内核栈（初始值）放在与PCB相同物理页的页面顶端
+	// 进程刚从用户态进入内核态时，内核栈的值总是空的，内核栈的大小为4096-sizeof(task_struct)
+	// 用户栈的大小通常为几MB，堆则可以到几GB
 	long *krnstack;
 	krnstack = (long)(PAGE_SIZE + (long)p); // krnstack保存的是子进程的内核栈位置
 
-	//iret指令的出栈数据
+	// iret指令的出栈数据
+	// ss:esp指向用户栈 ss表示栈基地址 esp表示栈顶地址
+	// cs:eip指向将要执行的用户态指令位置 cs指向代码段地址 eip是相对代码段地址的偏移地址
+	// 如果是系统调用的话 int 0x80; __res=eax;  cs:eip指向的就是__res=eax这条指令
+	// 也就是从系统调用返回后（内核态返回到用户态）执行的第一条指令
 	*(--krnstack) = ss & 0xffff;
 	*(--krnstack) = esp;
 	*(--krnstack) = eflags;
@@ -165,7 +200,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	*(--krnstack) = ebp;
 	*(--krnstack) = ecx;
 	*(--krnstack) = ebx;
-	*(--krnstack) = 0;
+	*(--krnstack) = 0;	// 子进程的返回值eax=0
 
 	p->kernelstack = krnstack; // 将存放在 PCB 中的内核栈指针修改到初始化完成时内核栈的栈顶
 
