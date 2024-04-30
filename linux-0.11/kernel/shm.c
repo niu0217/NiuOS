@@ -33,7 +33,8 @@ int sys_shmget(key_t key, size_t size)
             return i;
     }
 
-    page = get_free_page(); // 申请内存页
+    page = get_free_page(); // 申请内存页 get_free_page 中会将 mem_map 相应位置置为 1
+    decrease_mem_map(page); // 需要将 mem_map 相应位置清零，因为在 sys_shmat 才会将申请的物理页和虚拟地址关联增加引用次数
     if (!page)
     {
         errno = ENOMEM;
@@ -66,6 +67,11 @@ void *sys_shmat(int shmid)
         return NULL;
     }
     tmp = get_base(current->ldt[1]) + current->brk; // 计算虚拟地址
+    // 需要增加一次共享物理页的引用次数，否则会在 free_page 中 panic 死机
+    // 特别注意：这里我们增加了物理页面的计数，如果是2，则在put_page中会打印
+    // 一个“mem_map disagrees with %p at %p”这条信息，不知道为什么它要
+    // 判断是否等于1来打印这个消息 这里我自己修改这个逻辑
+    increase_mem_map(shm_list[shmid].page);         
     put_page(shm_list[shmid].page, tmp);
     logicalAddr = current->brk; // 记录逻辑地址
     current->brk += PAGE_SIZE;  // 更新brk指针

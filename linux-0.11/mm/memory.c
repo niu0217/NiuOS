@@ -203,7 +203,8 @@ unsigned long put_page(unsigned long page,unsigned long address)
 
 	if (page < LOW_MEM || page >= HIGH_MEMORY)
 		printk("Trying to put page %p at %p\n",page,address);
-	if (mem_map[(page-LOW_MEM)>>12] != 1)
+	// 之前是 !=1 我修改为==0
+	if (mem_map[(page-LOW_MEM)>>12] == 0)
 		printk("mem_map disagrees with %p at %p\n",page,address);
 	page_table = (unsigned long *) ((address>>20) & 0xffc);
 	if ((*page_table)&1)
@@ -429,4 +430,20 @@ void calc_mem(void)
 			printk("Pg-dir[%d] uses %d pages\n",i,k);
 		}
 	}
+}
+
+// 增加物理内存页面引用计数
+void increase_mem_map(unsigned long page)
+{
+	page -= LOW_MEM;
+	page >>= 12;
+	mem_map[page]++;
+}
+
+// 减少物理内存页面引用计数
+void decrease_mem_map(unsigned long page)
+{
+	page -= LOW_MEM;
+	page >>= 12;
+	mem_map[page]--;
 }
